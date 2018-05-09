@@ -1,11 +1,6 @@
 #include <painlessMesh.h>
 #include <WiFiClient.h>
 
-//#include "UbidotsMicroESP8266.h"
-#define TOKEN  "A1E-SyggO1V3EdZI5xZLEW5MQ3WIzboBNJ"  // Put here your Ubidots TOKEN
-#define WIFISSID "Banana"
-#define PASSWORD "hectorthefly"
-
 // some gpio pin that is connected to an LED...
 // on my rig, this is 5, change to the right number of your LED.
 #define   LED             D2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
@@ -79,20 +74,19 @@ void setup() {
   blinkNoNodes.enable();
 
   randomSeed(analogRead(A0));
-//  client.wifiConnection(WIFISSID, PASSWORD);
 }
 
 void loop() {
   userScheduler.execute(); // it will run mesh scheduler as well
   mesh.update();
   digitalWrite(LED, !onFlag);
-  delay(500);
+  delay(50);
 }
 
 void sendMessage() {
   String msg = "Central node ";
 //  msg += mesh.getNodeId();
-  msg += " on duty! ";
+  msg += "on duty! ";
 //  msg += " freeMemory: " + String(ESP.getFreeHeap());
   mesh.sendBroadcast(msg);
 
@@ -107,7 +101,7 @@ void sendMessage() {
 
   Serial.printf("Send: %s\n", msg.c_str());
   
-  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 5));  // between 1 and 5 seconds
+  taskSendMessage.setInterval(TASK_SECOND * 15);  // 5 seconds
 }
 
 
@@ -133,7 +127,7 @@ void changedConnectionCallback() {
  
   nodes = mesh.getNodeList();
 
-  Serial.printf("Num nodes: %d\n", nodes.size());
+  Serial.printf("No. of nodes: %d\n", nodes.size());
   Serial.printf("Connection list:");
 
   SimpleList<uint32_t>::iterator node = nodes.begin();

@@ -45,7 +45,7 @@ void setup() {
   pinMode(humid, OUTPUT);
 
   pinMode(LED, OUTPUT);
-  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);
+//  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);
 
   mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
   mesh.onReceive(&receivedCallback);
@@ -87,8 +87,6 @@ void tone(uint8_t _pin, unsigned int frequency, unsigned long duration) {
   pinMode (_pin, OUTPUT );
   analogWriteFreq(frequency);
   analogWrite(_pin,500);
-//  delay(duration);
-//  analogWrite(_pin,0);
 }
 void analogReadSensor() {
     StaticJsonBuffer<200> jsonBuffer;
@@ -109,7 +107,8 @@ void analogReadSensor() {
     digitalWrite(humid, HIGH);
     paramsJSON["humidity"] = analogRead(readPin);
     
-    String jsonStr = "Send values: ";
+    String jsonStr = "";
+    Serial.print("Send values: ");
     paramsJSON.printTo(jsonStr);
     mesh.sendBroadcast(jsonStr);
     
@@ -124,25 +123,6 @@ void loop() {
   delay(2000);
 //    tone(buzz, 500, 1000);
 }
-//void sendMessage() {
-//  String msg = "Hello from node no. ";
-//  msg += mesh.getNodeId();
-//  mesh.sendBroadcast(msg);
-//
-//  if (calc_delay) {
-//    SimpleList<uint32_t>::iterator node = nodes.begin();
-//    while (node != nodes.end()) {
-//      mesh.startDelayMeas(*node);
-//      node++;
-//    }
-//    calc_delay = false;
-//  }
-//
-//  Serial.printf("Send message: %s\n", msg.c_str());
-//  
-//  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 5));  // between 1 and 5 seconds
-//}
-
 
 void receivedCallback(uint32_t from, String & msg) {
   Serial.printf("%u: %s\n", from, msg.c_str());
@@ -185,3 +165,21 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 void delayReceivedCallback(uint32_t from, int32_t delay) {
 //  Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
+//void sendMessage() {
+//  String msg = "Hello from node no. ";
+//  msg += mesh.getNodeId();
+//  mesh.sendBroadcast(msg);
+//
+//  if (calc_delay) {
+//    SimpleList<uint32_t>::iterator node = nodes.begin();
+//    while (node != nodes.end()) {
+//      mesh.startDelayMeas(*node);
+//      node++;
+//    }
+//    calc_delay = false;
+//  }
+//
+//  Serial.printf("Send message: %s\n", msg.c_str());
+//  
+//  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 5));  // between 1 and 5 seconds
+//}
