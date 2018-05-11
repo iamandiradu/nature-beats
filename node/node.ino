@@ -46,7 +46,7 @@ void setup() {
   pinMode(humid, OUTPUT);
 
   pinMode(LED, OUTPUT);
-  pinMode(speaker, OUTPUT);
+//  pinMode(speaker, OUTPUT);
 //  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);
 
   mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
@@ -153,8 +153,8 @@ void loop() {
   mesh.update();
   digitalWrite(LED, !onFlag);
   analogReadSensor();
-  delay(2000);
-//    tone(buzz, 500, 1000);
+  delay(1000);
+//    tone(speaker, 500, 1000);
 }
 
 void receivedCallback(uint32_t from, String & msg) {
@@ -163,11 +163,14 @@ void receivedCallback(uint32_t from, String & msg) {
   String deactiv = "off";
   if(!msg.compareTo(activ)) {
     Serial.println("Activate");
-    digitalWrite(speaker, HIGH);
+    tone(speaker, 500, 1000);
+    Serial.println(msg);
   } else if(!msg.compareTo(deactiv)) {
     Serial.println("Deactivate");
     digitalWrite(speaker, LOW);
+    Serial.println(msg);
   }
+  
 }
 
 void newConnectionCallback(uint32_t nodeId) {

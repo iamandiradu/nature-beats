@@ -88,10 +88,25 @@ void loop() {
   mesh.update();
   if(swSerial.available() > 0) {
     sendDataToGateway(data);
+
+     char c = swSerial.read();  //gets one byte from serial buffer
+      DataString += c;
+  }
+  if (DataString  != "") {
+    Serial.println(DataString);
+    if(DataString == "1") {
+      //signal activate
+      activateSound();
+    } else if(DataString == "0") {
+      //signal activate
+      deactivateSound();
+    }
+    
   }
 //  Serial.print(data);
   digitalWrite(LED, !onFlag);
-//  delay(1000);
+  DataString = "";
+  delay(1000);
 }
 
 void receivedCallback(uint32_t from, String & msg) {
@@ -110,26 +125,35 @@ void sendDataToGateway (String data) {
 ////    DataString += c; // makes the string DataString
 //  }
 }
-
+void activateSound() {
+  String activation = "on";
+  mesh.sendBroadcast(activation);
+  Serial.print(activation);
+}
+void deactivateSound() {
+  String deactivation = "off";
+  mesh.sendBroadcast(deactivation);
+  Serial.print(deactivation);
+}
 void sendMessage() {
   String msg = "Central node ";
 //  msg += mesh.getNodeId();
   msg += "on duty! ";
 //  msg += " freeMemory: " + String(ESP.getFreeHeap());
-  mesh.sendBroadcast(msg);
+//  mesh.sendBroadcast(msg);
 
-  if (calc_delay) {
-    SimpleList<uint32_t>::iterator node = nodes.begin();
-    while (node != nodes.end()) {
-      mesh.startDelayMeas(*node);
-      node++;
-    }
-    calc_delay = false;
-  }
+//  if (calc_delay) {
+//    SimpleList<uint32_t>::iterator node = nodes.begin();
+//    while (node != nodes.end()) {
+//      mesh.startDelayMeas(*node);
+//      node++;
+//    }
+//    calc_delay = false;
+//  }
 
-  Serial.printf("Send: %s\n", msg.c_str());
+//  Serial.printf("Send: %s\n", msg.c_str());
   
-  taskSendMessage.setInterval(TASK_SECOND * 15);  // 5 seconds
+//  taskSendMessage.setInterval(TASK_SECOND * 2);  // 5 seconds
 }
 
 void newConnectionCallback(uint32_t nodeId) {
