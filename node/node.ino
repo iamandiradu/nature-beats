@@ -1,5 +1,6 @@
 #include <painlessMesh.h>
 #define   LED             D8       // GPIO number of connected LED, ON ESP-12 IS GPIO2
+#define   speaker         D7
 
 #define   BLINK_PERIOD    3000 // milliseconds until cycle repeat
 #define   BLINK_DURATION  100  // milliseconds LED is on for
@@ -45,6 +46,7 @@ void setup() {
   pinMode(humid, OUTPUT);
 
   pinMode(LED, OUTPUT);
+  pinMode(speaker, OUTPUT);
 //  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);
 
   mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
@@ -88,6 +90,37 @@ void tone(uint8_t _pin, unsigned int frequency, unsigned long duration) {
   analogWriteFreq(frequency);
   analogWrite(_pin,500);
 }
+double temperatureRead(int analogTemp) {
+  const double VCC = 3.3;             // NodeMCU on board 3.3v vcc
+  const double R2 = 10000;            // 10k ohm series resistor
+  const double adc_resolution = 1023; // 10-bit adc
+
+  const double A = 0.001129148;   // thermistor equation parameters
+  const double B = 0.000234125;
+  const double C = 0.0000000876741;
+
+  double Vout, Rth, temperature, adc_value; 
+
+  adc_value = analogTemp;
+  Vout = (adc_value * VCC) / adc_resolution;
+  Rth = (VCC * R2 / Vout) - R2;
+
+/*  Steinhart-Hart Thermistor Equation:
+ *  Temperature in Kelvin = 1 / (A + B[ln(R)] + C[ln(R)]^3)
+ *  where A = 0.001129148, B = 0.000234125 and C = 8.76741*10^-8  */
+  temperature = (1 / (A + (B * log(Rth)) + (C * pow((log(Rth)),3))));   // Temperature in kelvin
+
+  temperature = temperature - 270;
+  return (int)temperature;
+}
+
+double lightRead(int analogLight) {
+  return (analogLight * 100 / 1024);
+}
+
+double humidityRead(int analogHumidity) {
+  return (analogHumidity * 100 / 1024);
+}
 void analogReadSensor() {
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& paramsJSON = jsonBuffer.createObject();
@@ -95,17 +128,17 @@ void analogReadSensor() {
     digitalWrite(temp, HIGH);
     digitalWrite(light, LOW);
     digitalWrite(humid, LOW);
-    paramsJSON["temperature"] = analogRead(readPin);
+    paramsJSON["temperature"] = temperatureRead(analogRead(readPin));
     
     digitalWrite(temp, LOW);
     digitalWrite(light, HIGH);
     digitalWrite(humid, LOW);
-    paramsJSON["light"] = analogRead(readPin);
+    paramsJSON["light"] = lightRead(analogRead(readPin));
     
     digitalWrite(temp, LOW);
     digitalWrite(light, LOW);
     digitalWrite(humid, HIGH);
-    paramsJSON["humidity"] = analogRead(readPin);
+    paramsJSON["humidity"] = humidityRead(analogRead(readPin));
     
     String jsonStr = "";
     Serial.print("Send values: ");
@@ -126,6 +159,15 @@ void loop() {
 
 void receivedCallback(uint32_t from, String & msg) {
   Serial.printf("%u: %s\n", from, msg.c_str());
+  String activ = "on";
+  String deactiv = "off";
+  if(!msg.compareTo(activ)) {
+    Serial.println("Activate");
+    digitalWrite(speaker, HIGH);
+  } else if(!msg.compareTo(deactiv)) {
+    Serial.println("Deactivate");
+    digitalWrite(speaker, LOW);
+  }
 }
 
 void newConnectionCallback(uint32_t nodeId) {
